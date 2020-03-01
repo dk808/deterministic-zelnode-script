@@ -1,0 +1,1 @@
+# deterministic-zelnode-script
