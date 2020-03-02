@@ -19,5 +19,5 @@ User input will be prompted so have in hand the following.
 4.  Your ZelID for Zelflux installation
 
 ```
-wget https://raw.githubusercontent.com/dk808/Kamata_testnet/master/zelnode.sh && bash -i zelnode.sh
+wget https://raw.githubusercontent.com/dk808/deterministic-zelnode-script/master/install.sh && bash -i install.sh
 ```
