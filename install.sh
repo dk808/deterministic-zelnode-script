@@ -61,6 +61,7 @@ PIN="${RED}\xF0\x9F\x93\x8C${NC}"
 
 #Suppressing password prompts for this user so zelnode can operate
 clear
+sleep 5
 sudo echo -e "$(whoami) ALL=(ALL) NOPASSWD:ALL" | sudo EDITOR='tee -a' visudo
 echo -e "${YELLOW}====================================================================="
 echo -e " Zelnode & Zelflux Install"
