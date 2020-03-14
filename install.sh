@@ -370,7 +370,7 @@ EOF
 function kill_sessions() {
     echo -e "${YELLOW}If you have made a previous run of the script and have a session running for Zelflux it must be removed before starting a new one."
     echo -e "${YELLOW}Detecting sessions please remove any that is running Zelflux...${NC}" && sleep 5
-    tmux ls | grep : | cut -d "" -f1 | awk '{print substr($1, 0, length($1)-1)}' | tee tempfile > /dev/null 2>&1
+    tmux ls | grep : | awk '{print substr($1, 0, length($1))}' | tee tempfile > /dev/null 2>&1
     grep -v '^ *#' < tempfile | while IFS= read -r line
     do
         if whiptail --yesno "Would you like to kill session ${line}?" 8 43; then
