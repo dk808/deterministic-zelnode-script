@@ -21,3 +21,10 @@ User input will be prompted so have in hand the following.
 ```
 bash -i <(curl -s https://raw.githubusercontent.com/dk808/deterministic-zelnode-script/master/install.sh)
 ```
+
+## Upgrade Instructions
+Follow instructions above to install docker but after rebooting and logging in with the user the Zelnode is on run the upgrade script instead of the install script. 
+
+```
+bash -i <(curl -s https://raw.githubusercontent.com/dk808/deterministic-zelnode-script/master/upgrade.sh)
+```
