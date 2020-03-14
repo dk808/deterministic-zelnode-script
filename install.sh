@@ -370,7 +370,7 @@ EOF
 function kill_sessions() {
     echo -e "${YELLOW}If you have made a previous run of the script and have a session running for Zelflux it must be removed before starting a new one."
     echo -e "${YELLOW}Detecting sessions please remove any that is running Zelflux...${NC}" && sleep 5
-    tmux ls | grep : | awk '{print substr($1, 0, length($1))}' | tee tempfile > /dev/null 2>&1
+    tmux ls | sed -e 's/://g' | cut -d' ' -f 1 | tee tempfile > /dev/null 2>&1
     grep -v '^ *#' < tempfile | while IFS= read -r line
     do
         if whiptail --yesno "Would you like to kill session ${line}?" 8 43; then
@@ -491,6 +491,8 @@ function status_loop() {
 	    break
 	fi
     done
+    check
+    display_banner
 }
 
 function update_script() {
@@ -595,8 +597,6 @@ function display_banner() {
     echo
     echo -e "${PIN} ${CYAN}To access your frontend to Zelflux enter this in as your url: ${SEA}${WANIP}:${ZELFRONTPORT}${NC}"
     echo -e "${YELLOW}================================================================================================================================${NC}"
-    read -n1 -r -p "Press any key to continue..."
-    status_loop
 }
 
 #
@@ -619,5 +619,5 @@ function display_banner() {
     log_rotate
     restart_script
     update_script
-    check
-    display_banner
+    status_loop
+    
