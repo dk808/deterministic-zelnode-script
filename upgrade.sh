@@ -290,7 +290,7 @@ function zelflux() {
 	NUM='300'
 	MSG1="Cloning and installing Zelflux. Please be patient this will take 5 min..."
 	MSG2="${CHECK_MARK}${CHECK_MARK}${CHECK_MARK}${GREEN} installation has completed${NC}"
-	echo && spinning_time
+	echo && spinning_timer
 	sleep 2
 	tmux send-keys "$WANIP" C-m
 	sleep 2
