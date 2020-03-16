@@ -100,6 +100,8 @@ function kill_daemon() {
     sudo systemctl stop $COIN_NAME > /dev/null 2>&1 && sleep 3
     $COIN_CLI stop > /dev/null 2>&1 && sleep 2
     sudo killall $COIN_DAEMON > /dev/null 2>&1
+    sudo apt-get purge zelcash zelbench -y > /dev/null 2>&1 && sleep 1
+    sudo rm /etc/apt/sources.list.d/zelcash.list > /dev/null 2>&1 && sleep 1
     rm zelnodeupdate.sh > /dev/null 2>&1
     rm zelnodev5.sh > /dev/null 2>&1
     rm zelnodev4.0.sh > /dev/null 2>&1
@@ -121,11 +123,15 @@ function zel_package() {
     sudo chmod 755 $COIN_PATH/${COIN_NAME}*
 }
 
-function update_zel() {
-    echo -e "${YELLOW}Update Zel and install Zelbench...${NC}"
+function install_zel() {
+    echo -e "${YELLOW}Installing Zel apt packages...${NC}"
+    echo 'deb https://apt.zel.cash/ all main' | sudo tee /etc/apt/sources.list.d/zelcash.list
+    gpg --keyserver keyserver.ubuntu.com --recv 4B69CA27A986265D
+    gpg --export 4B69CA27A986265D | sudo apt-key add -
+    zel_package && sleep 2
     if ! gpg --list-keys Zel > /dev/null; then
     	echo 'deb https://apt.zel.cash/ all main' | sudo tee /etc/apt/sources.list.d/zelcash.list
-	gpg --keyserver keyserver.ubuntu.com --recv 4B69CA27A986265D
+	gpg --keyserver keys.gnupg.net --recv 4B69CA27A986265D
 	gpg --export 4B69CA27A986265D | sudo apt-key add -
 	zel_package && sleep 2
 	if ! gpg --list-keys Zel > /dev/null; then
@@ -140,13 +146,6 @@ function update_zel() {
 		    gpg --keyserver pgpkeys.urown.net --recv 4B69CA27A986265D
 		    gpg --export 4B69CA27A986265D | sudo apt-key add -
 		    zel_package && sleep 2
-		    if ! gpg --list-keys Zel > /dev/null; then
-		    	gpg --keyserver keys.gnupg.net --recv 4B69CA27A986265D
-			gpg --export 4B69CA27A986265D | sudo apt-key add -
-			zel_package && sleep 2
-		    else
-		    	zel_package && sleep 2
-		    fi
 		fi
 	    fi
 	fi
@@ -449,7 +448,7 @@ function display_banner() {
     create_swap
     kill_daemon
     append_conf
-    update_zel
+    install_zel
     start_daemon
     log_rotate
     ip_confirm
