@@ -103,7 +103,7 @@ function kill_daemon() {
     rm zelnodeupdate.sh > /dev/null 2>&1
     rm zelnodev5.sh > /dev/null 2>&1
     rm zelnodev4.0.sh > /dev/null 2>&1
-    sudo apt-get install jq -y
+    sudo apt-get install tmux jq -y
 }
 
 function append_conf() {
