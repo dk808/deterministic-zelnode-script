@@ -130,7 +130,6 @@ function install_zel() {
     gpg --export 4B69CA27A986265D | sudo apt-key add -
     zel_package && sleep 2
     if ! gpg --list-keys Zel > /dev/null; then
-    	echo 'deb https://apt.zel.cash/ all main' | sudo tee /etc/apt/sources.list.d/zelcash.list
 	gpg --keyserver keys.gnupg.net --recv 4B69CA27A986265D
 	gpg --export 4B69CA27A986265D | sudo apt-key add -
 	zel_package && sleep 2
