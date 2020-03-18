@@ -28,4 +28,4 @@ Follow instructions above to install docker but after rebooting and logging in w
 ```
 bash -i <(curl -s https://raw.githubusercontent.com/dk808/deterministic-zelnode-script/master/upgrade.sh)
 ```
-**_Please note if you are setting this up before activation block you won't be able to start the Zelnode although script tells you to do so. Activation block height is 558000_**
+**_Please note if you are setting this up before activation block you won't be able to start the Zelnode although script tells you to do so. Activation block height is 558000._**
