@@ -86,7 +86,7 @@ function wipe_clean() {
     sudo apt-get purge zelcash zelbench -y > /dev/null 2>&1 && sleep 1
     sudo rm /etc/apt/sources.list.d/zelcash.list > /dev/null 2>&1 && sleep 1
     sudo rm -rf zelflux && sleep 1
-    sudo rm -rf ~/$CONFIF_DIR/determ_zelnodes ~/$CONFIF_DIR/sporks ~/$CONFIF_DIR/database ~/$CONFIF_DIR/blocks ~/$CONFIF_DIR/chainstate && sleep 1
+    sudo rm -rf ~/$CONFIG_DIR/determ_zelnodes ~/$CONFIG_DIR/sporks ~/$CONFIG_DIR/database ~/$CONFIG_DIR/blocks ~/$CONFIG_DIR/chainstate && sleep 1
     sudo rm -rf .zelbenchmark && sleep 1
     rm -rf $BOOTSTRAP_ZIPFILE && sleep 1
     rm $UPDATE_FILE > /dev/null 2>&1
