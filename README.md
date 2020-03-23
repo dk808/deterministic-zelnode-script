@@ -1,5 +1,7 @@
 # Zelnode and Zelflux
-Script needs to be ran under a non-root user with sudo privileges. It will build using zel apt packages and should work on Ubuntu 18 and Debian 10. Script will install firewall, daemon service, create update script, create zelflux restart script, and set cron job to run the restart script if is not running. USE AT OWN RISK. You could find a detailed guide in the [Wiki](https://github.com/dk808/deterministic-zelnode-script/wiki)
+Script needs to be ran under a non-root user with sudo privileges. It will build using zel apt packages and should work on Ubuntu 18 and Debian 10. Script will install firewall, daemon service, create update script, create zelflux restart script, and set cron job to run the restart script if is not running. You could find a detailed guide in the [Wiki](https://github.com/dk808/deterministic-zelnode-script/wiki)
+
+**_Note: All test runs of this install script have only been done on VPS platforms and most likely will not work on personal home servers. USE AT OWN RISK._** 
 
 ## Docker Instructions
 After creating a non-root user to run your zel daemon, run the following commands as the root user.
