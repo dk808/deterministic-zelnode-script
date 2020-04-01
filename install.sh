@@ -424,6 +424,7 @@ function install_mongod() {
     sudo apt-get update
     sudo apt-get install mongodb-org -y
     sudo service mongod start
+    sudo systemctl enable mongod
 }
 
 function install_nodejs() {
@@ -440,40 +441,27 @@ function zelflux() {
     if [ -d "./zelflux" ]; then
     	sudo rm -rf zelflux
     fi
-    kill_sessions
     if whiptail --yesno "If you would like admin privileges to Zelflux select <Yes>(Recommended) and prepare to enter your ZelID. If you don't have one or don't want to have admin privileges to Zelflux select <No>." 9 108; then
     	ZELID=$(whiptail --inputbox "Enter your ZelID found in the Zelcore+/Apps section of your Zelcore" 8 71 3>&1 1>&2 2>&3)
     else
     	ZELID='132hG26CFTNhLM3MRsLEJhp9DpBrK6vg5N'
     fi
-    TMUX=$(whiptail --inputbox "Enter a name for your tmux session to run Zelflux" 8 53 3>&1 1>&2 2>&3)
-    if ! tmux ls | grep -q "$TMUX"; then
-    	tmux new-session -d -s "$TMUX"
-	tmux send-keys 'git clone https://github.com/zelcash/zelflux.git && cd zelflux && npm start' C-m
-	NUM='300'
-	MSG1="Cloning and installing Zelflux. Please be patient this will take 5 min..."
-	MSG2="${CHECK_MARK}${CHECK_MARK}${CHECK_MARK}${GREEN} installation has completed${NC}"
-	echo && spinning_timer
-	sleep 2
-	tmux send-keys "$WANIP" C-m
-	sleep 2
-	tmux send-keys "$ZELID" C-m
-	sleep 1
-	SESSION_NAME="$TMUX"
-    else
-    	tmux new-session -d -s ${COIN_NAME^}
-	tmux send-keys 'git clone https://github.com/zelcash/zelflux.git && cd zelflux && npm start' C-m
-	NUM='300'
-	MSG1="Cloning and installing Zelflux. Please be patient this will take 5 min..."
-	MSG2="${CHECK_MARK}${CHECK_MARK}${CHECK_MARK}${GREEN} installation has completed${NC}"
-	echo && spinning_timer
-	sleep 2
-	tmux send-keys "$WANIP" C-m
-	sleep 2
-	tmux send-keys "$ZELID" C-m
-	sleep 1
-	SESSION_NAME="${COIN_NAME^}"
-    fi
+    git clone https://github.com/zelcash/zelflux.git
+    touch ~/zelflux/config/userconfig.js
+    cat << EOF > ~/zelflux/config/userconfig.js
+module.exports = {
+      initial: {
+        ipaddress: '${WANIP}',
+	zelid: '${ZELID}',
+	testnet: false
+      }
+    }
+EOF
+    npm i -g pm2
+    pm2 startup systemd -u $USERNAME
+    sudo env PATH=$PATH:/home/$USERNAME/.nvm/versions/node/v12.16.1/bin pm2 startup systemd -u $USERNAME --hp /home/$USERNAME
+    pm2 start start.sh --name zelflux
+    pm2 save
 }
 	
 function status_loop() {
@@ -522,22 +510,12 @@ EOF
 
 function restart_script() {
     echo -e "${YELLOW}Creating a script to restart Zelflux in case server reboots...${NC}"
-    touch /home/"$USERNAME"/restart_zelflux.sh
-    cat << EOF > /home/"$USERNAME"/restart_zelflux.sh
+    touch /home/"$USERNAME"/start.sh
+    cat << EOF > /home/"$USERNAME"/start.sh
 #!/bin/bash
-sudo service mongod start && sleep 5
-tmux new-session -d -s ${SESSION_NAME}
-tmux send-keys -t ${SESSION_NAME} "cd zelflux && npm start" C-m
+cd zelflux && npm start
 EOF
-    sudo chmod +x restart_zelflux.sh
-    crontab -l | grep -v "SHELL=/bin/bash" | crontab -
-    crontab -l | grep -v "pgrep mongod > /dev/null || /home/$USERNAME/restart_zelflux.sh" | crontab -
-    sleep 1
-    crontab -l > tempcron
-    echo "SHELL=/bin/bash" >> tempcron
-    echo "* * * * * pgrep mongod > /dev/null || /home/$USERNAME/restart_zelflux.sh >/dev/null 2>&1" >> tempcron
-    crontab tempcron
-    rm tempcron
+    sudo chmod +x start.sh
 }
 
 function check() {
@@ -573,7 +551,7 @@ function check() {
     else
     	echo -e "${X_MARK} ${CYAN}Update script not installed${NC}" && sleep 3
     fi
-    if [ -f "/home/$USERNAME/restart_zelflux.sh" ]; then
+    if [ -f "/home/$USERNAME/start.sh" ]; then
     	echo -e "${CHECK_MARK} ${CYAN}Restart script for Zelflux created${NC}" && sleep 3
     else
     	echo -e "${X_MARK} ${CYAN}Restart script not installed${NC}" && sleep 3
@@ -596,10 +574,8 @@ function display_banner() {
     echo
     echo -e "${PIN} ${YELLOW}To update binaries wait for announcement that update is ready then enter:${NC} ${SEA}./${UPDATE_FILE}${NC}"
     echo
-    echo -e "${YELLOW}   Your tmux session running Zelflux is named ${SESSION_NAME}${NC}"
-    echo -e "${PIN} ${CYAN}To attach to zelflux session enter: ${SEA}tmux a -t ${SESSION_NAME}${NC}"
-    echo -e "${PIN} ${CYAN}To detach zelflux session enter: ${SEA}Ctrl+b, d${NC}"
-    echo -e "${PIN} ${CYAN}To kill zelflux session enter: ${SEA}tmux kill-session -t ${SESSION_NAME}${NC}"
+    echo -e "${YELLOW}   PM2 is now managing Zelflux to start up on reboots.${NC}"
+    pm list
     echo
     echo -e "${PIN} ${CYAN}To access your frontend to Zelflux enter this in as your url: ${SEA}${WANIP}:${ZELFRONTPORT}${NC}"
     echo -e "${YELLOW}================================================================================================================================${NC}"
@@ -621,9 +597,9 @@ function display_banner() {
     create_service
     basic_security
     start_daemon
+    restart_script
     install_zelflux
     log_rotate
-    restart_script
     update_script
     status_loop
     
