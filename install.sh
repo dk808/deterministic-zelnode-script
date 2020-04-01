@@ -82,6 +82,8 @@ function wipe_clean() {
     $COIN_CLI stop > /dev/null 2>&1 && sleep 2
     sudo systemctl stop $COIN_NAME > /dev/null 2>&1 && sleep 2
     sudo killall $COIN_DAEMON > /dev/null 2>&1
+    zelbench-cli stop > /dev/null 2>&1
+    sudo killall zelbenchd > /dev/null 2>&1
     sudo rm ${COIN_PATH}/zel* > /dev/null 2>&1 && sleep 1
     sudo rm /usr/bin/${COIN_NAME}* > /dev/null 2>&1 && sleep 1
     sudo apt-get purge zelcash zelbench -y > /dev/null 2>&1 && sleep 1
