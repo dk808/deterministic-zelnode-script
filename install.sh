@@ -388,7 +388,7 @@ function install_zelflux() {
     sudo ufw allow $ZELNODEPORT/tcp
     sudo ufw allow $MDBPORT/tcp
     if mongod --version > /dev/null 2>&1; then
-    	echo "Mongodb already installed...
+    	echo -e "${YELLOW}Mongodb already installed...${NC}"
 	sudo systemctl enable mongod
 	install_nodejs
 	zelflux
