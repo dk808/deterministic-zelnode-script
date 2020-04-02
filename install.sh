@@ -24,8 +24,8 @@ COIN_NAME='zelcash'
 #wallet information
 
 UPDATE_FILE='update.sh'
-BOOTSTRAP_ZIP='http://95.217.155.210:16127/zelapps/zelshare/getfile/zel-bootstrap2.zip'
-BOOTSTRAP_ZIPFILE='zel-bootstrap2.zip'
+BOOTSTRAP_ZIP='https://www.dropbox.com/s/wlzwodoi0jv56f7/zel-bootstrap3.zip'
+BOOTSTRAP_ZIPFILE='zel-bootstrap3.zip'
 CONFIG_DIR='.zelcash'
 CONFIG_FILE='zelcash.conf'
 RPCPORT='16124'
@@ -82,6 +82,7 @@ function wipe_clean() {
     $COIN_CLI stop > /dev/null 2>&1 && sleep 2
     sudo systemctl stop $COIN_NAME > /dev/null 2>&1 && sleep 2
     sudo killall $COIN_DAEMON > /dev/null 2>&1
+    sudo killall -s SIGKILL zelbenchd > /dev/null 2>&1
     sudo rm ${COIN_PATH}/zel* > /dev/null 2>&1 && sleep 1
     sudo rm /usr/bin/${COIN_NAME}* > /dev/null 2>&1 && sleep 1
     sudo apt-get purge zelcash zelbench -y > /dev/null 2>&1 && sleep 1
