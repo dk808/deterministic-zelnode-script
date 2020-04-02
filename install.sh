@@ -81,13 +81,18 @@ function wipe_clean() {
     echo -e "${YELLOW}Removing any instances of ${COIN_NAME^}${NC}"
     $COIN_CLI stop > /dev/null 2>&1 && sleep 2
     sudo systemctl stop $COIN_NAME > /dev/null 2>&1 && sleep 2
-    sudo killall $COIN_DAEMON > /dev/null 2>&1
+    sudo killall -s SIGKILL $COIN_DAEMON > /dev/null 2>&1
     zelbench-cli stop > /dev/null 2>&1
-    sudo killall zelbenchd > /dev/null 2>&1
+    sudo killall -s SIGKILL zelbenchd > /dev/null 2>&1
     sudo rm ${COIN_PATH}/zel* > /dev/null 2>&1 && sleep 1
     sudo rm /usr/bin/${COIN_NAME}* > /dev/null 2>&1 && sleep 1
     sudo apt-get purge zelcash zelbench -y > /dev/null 2>&1 && sleep 1
+    sudo apt-get autoremove -y > /dev/null 2>&1 && sleep 1
     sudo rm /etc/apt/sources.list.d/zelcash.list > /dev/null 2>&1 && sleep 1
+    tmux kill-server > /dev/null 2>&1
+    pm2 unstartup > /dev/null 2>&1
+    pm2 del zelflux > /dev/null 2>&1
+    pm2 flush > /dev/null 2>&1
     sudo rm -rf zelflux && sleep 1
     sudo rm -rf ~/$CONFIG_DIR/determ_zelnodes ~/$CONFIG_DIR/sporks ~/$CONFIG_DIR/database ~/$CONFIG_DIR/blocks ~/$CONFIG_DIR/chainstate && sleep 1
     sudo rm -rf .zelbenchmark && sleep 1
@@ -95,6 +100,7 @@ function wipe_clean() {
     rm $UPDATE_FILE > /dev/null 2>&1
     rm restart_zelflux.sh > /dev/null 2>&1
     rm zelnodeupdate.sh > /dev/null 2>&1
+    rm start.sh > /dev/null 2>&1
 }
 
 function spinning_timer() {
@@ -330,7 +336,7 @@ function start_daemon() {
     NUM='105'
     MSG1='Starting daemon & syncing with chain please be patient this will take about 2 min...'
     MSG2=''
-    if $COIN_DAEMON > /dev/null 2>&1; then
+    if sudo systemctl start $COIN_NAME.service > /dev/null 2>&1; then
     	echo && spinning_timer
 	NUM='10'
 	MSG1='Getting info...'
@@ -381,30 +387,37 @@ function install_zelflux() {
     sudo ufw allow $LOCPORT/tcp
     sudo ufw allow $ZELNODEPORT/tcp
     sudo ufw allow $MDBPORT/tcp
-    if [[ $(lsb_release -r) = *16.04* ]]; then
-    	wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-	echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
-	install_mongod
+    if mongod --version > /dev/null 2>&1; then
+    	echo "Mongodb already installed...
+	sudo systemctl enable mongod
 	install_nodejs
 	zelflux
-    elif [[ $(lsb_release -r) = *18.04* ]]; then
-    	wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-	echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
-	install_mongod
-	install_nodejs
-	zelflux
-    elif [[ $(lsb_release -d) = *Debian* ]] && [[ $(lsb_release -d) = *9* ]]; then
-    	wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-	echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/debian stretch/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
-	install_mongod
-	install_nodejs
-	zelflux
-    elif [[ $(lsb_release -d) = *Debian* ]] && [[ $(lsb_release -d) = *10* ]]; then
-    	wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-	echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
-	install_mongod
-	install_nodejs
-	zelflux
+    else
+    	if [[ $(lsb_release -r) = *16.04* ]]; then
+	    wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+	    echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+	    install_mongod
+	    install_nodejs
+	    zelflux
+	elif [[ $(lsb_release -r) = *18.04* ]]; then
+	    wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+	    echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+	    install_mongod
+	    install_nodejs
+	    zelflux
+	elif [[ $(lsb_release -d) = *Debian* ]] && [[ $(lsb_release -d) = *9* ]]; then
+	    wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+	    echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/debian stretch/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+	    install_mongod
+	    install_nodejs
+	    zelflux
+	elif [[ $(lsb_release -d) = *Debian* ]] && [[ $(lsb_release -d) = *10* ]]; then
+	    wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+	    echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+	    install_mongod
+	    install_nodejs
+	    zelflux
+	fi
     fi
     sleep 2
 }
@@ -446,7 +459,15 @@ module.exports = {
       }
     }
 EOF
-    npm i -g pm2
+    if ! pm2 -v; then
+    	npm i -g pm2
+	pm2_startup
+    else
+    	pm2_startup
+    fi
+}
+
+function pm2_startup() {
     pm2 startup systemd -u $USERNAME
     sudo env PATH=$PATH:/home/$USERNAME/.nvm/versions/node/v12.16.1/bin pm2 startup systemd -u $USERNAME --hp /home/$USERNAME
     pm2 start start.sh --name zelflux
