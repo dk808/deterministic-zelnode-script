@@ -472,8 +472,20 @@ function pm2_startup() {
     sudo env PATH=$PATH:/home/$USERNAME/.nvm/versions/node/v12.16.1/bin pm2 startup systemd -u $USERNAME --hp /home/$USERNAME
     pm2 start start.sh --name zelflux
     pm2 save
+    sleep 2
+    pm2_logrotate
 }
-	
+
+function pm2_logrotate() {
+    echo -e "${YELLOW}Configuring log rotate function for pm2 logs that's managing Zelflux...${NC}"
+    pm2 install pm2-logrotate
+    pm2 set pm2-logrotate:max_size 5K >/dev/null
+    pm2 set pm2-logrotate:retain 6 >/dev/null
+    pm2 set pm2-logrotate:compress true >/dev/null
+    pm2 set pm2-logrotate:workerInterval 3600 >/dev/null
+    pm2 set pm2-logrotate:rotateInterval 0 12 * * 0 >/dev/null
+}
+
 function status_loop() {
     while true
     do
