@@ -470,7 +470,7 @@ EOF
 function pm2_startup() {
     pm2 startup systemd -u $USERNAME
     sudo env PATH=$PATH:/home/$USERNAME/.nvm/versions/node/v12.16.1/bin pm2 startup systemd -u $USERNAME --hp /home/$USERNAME
-    pm2 start start.sh --name zelflux
+    pm2 start ~/zelflux/start.sh --name zelflux
     pm2 save
     sleep 2
     pm2_logrotate
@@ -478,7 +478,16 @@ function pm2_startup() {
 
 function pm2_logrotate() {
     echo -e "${YELLOW}Configuring log rotate function for pm2 logs that's managing Zelflux...${NC}"
-    pm2 install pm2-logrotate
+    if [ -d ~/.pm2/modules/pm2-logrotate ]; then
+    	echo -e "${YELLOW}Pm2-logrotate already installed will skip installation...${NC}"
+	set_pm2log
+    else
+    	pm2 install pm2-logrotate
+	set_pm2log
+    fi
+}
+
+function set_pm2log() {
     pm2 set pm2-logrotate:max_size 5K >/dev/null
     pm2 set pm2-logrotate:retain 6 >/dev/null
     pm2 set pm2-logrotate:compress true >/dev/null
@@ -530,16 +539,6 @@ EOF
     sudo chmod +x update.sh
 }
 
-function restart_script() {
-    echo -e "${YELLOW}Creating a script to restart Zelflux in case server reboots...${NC}"
-    touch /home/"$USERNAME"/start.sh
-    cat << EOF > /home/"$USERNAME"/start.sh
-#!/bin/bash
-cd zelflux && npm start
-EOF
-    sudo chmod +x start.sh
-}
-
 function check() {
     echo && echo && echo
     echo -e "${YELLOW}Running through some checks...${NC}"
@@ -572,11 +571,6 @@ function check() {
     	echo -e "${CHECK_MARK} ${CYAN}Update script created${NC}" && sleep 3
     else
     	echo -e "${X_MARK} ${CYAN}Update script not installed${NC}" && sleep 3
-    fi
-    if [ -f "/home/$USERNAME/start.sh" ]; then
-    	echo -e "${CHECK_MARK} ${CYAN}Restart script for Zelflux created${NC}" && sleep 3
-    else
-    	echo -e "${X_MARK} ${CYAN}Restart script not installed${NC}" && sleep 3
     fi
     echo && echo && echo
 }
