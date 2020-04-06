@@ -24,8 +24,8 @@ COIN_NAME='zelcash'
 #wallet information
 
 UPDATE_FILE='update.sh'
-BOOTSTRAP_ZIP='https://www.dropbox.com/s/wlzwodoi0jv56f7/zel-bootstrap3.zip'
-BOOTSTRAP_ZIPFILE='zel-bootstrap3.zip'
+BOOTSTRAP_ZIP='https://www.dropbox.com/s/ioxzqainqojenor/zel-bootstrap.zip'
+BOOTSTRAP_ZIPFILE='zel-bootstrap.zip'
 CONFIG_DIR='.zelcash'
 CONFIG_FILE='zelcash.conf'
 RPCPORT='16124'
@@ -431,7 +431,7 @@ function install_mongod() {
 
 function install_nodejs() {
     if ! node -v > /dev/null 2>&1; then
-    	curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.0/install.sh | bash
+    	curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
 	. ~/.profile
 	nvm install --lts
     else
