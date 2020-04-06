@@ -443,11 +443,7 @@ function zelflux() {
     if [ -d "./zelflux" ]; then
     	sudo rm -rf zelflux
     fi
-    if whiptail --yesno "If you would like admin privileges to Zelflux select <Yes>(Recommended) and prepare to enter your ZelID. If you don't have one or don't want to have admin privileges to Zelflux select <No>." 9 108; then
-    	ZELID=$(whiptail --inputbox "Enter your ZelID found in the Zelcore+/Apps section of your Zelcore" 8 71 3>&1 1>&2 2>&3)
-    else
-    	ZELID='132hG26CFTNhLM3MRsLEJhp9DpBrK6vg5N'
-    fi
+    ZELID=$(whiptail --inputbox "Enter your ZelID found in the Zelcore+/Apps section of your Zelcore" 8 71 3>&1 1>&2 2>&3)
     git clone https://github.com/zelcash/zelflux.git
     touch ~/zelflux/config/userconfig.js
     cat << EOF > ~/zelflux/config/userconfig.js
