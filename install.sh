@@ -609,7 +609,6 @@ function display_banner() {
     create_service
     basic_security
     start_daemon
-    restart_script
     install_zelflux
     log_rotate
     update_script
