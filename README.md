@@ -8,11 +8,12 @@ After creating a root user with sudo privileges to run your zel daemon, run the 
 
 1.  sudo apt-get update
 2.  sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common -y
-3.  sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-4.  sudo apt-get update
-5.  sudo apt-get install docker-ce docker-ce-cli containerd.io -y
-6.  adduser USER docker        **_#(Replace USER with the username you created e.g adduser dk808 docker)_**
-7.  reboot
+3.  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+4.  sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+5.  sudo apt-get update
+6.  sudo apt-get install docker-ce docker-ce-cli containerd.io -y
+7.  adduser USER docker        **_#(Replace USER with the username you created e.g adduser dk808 docker)_**
+8.  reboot
 
 Give server few min to restart, log back in as the user that you created above, and then run the script posted below.
 
