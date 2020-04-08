@@ -455,7 +455,7 @@ module.exports = {
       }
     }
 EOF
-    if ! pm2 -v; then
+    if ! pm2 -v > /dev/null 2>&1; then
     	npm i -g pm2
 	pm2_startup
     else
