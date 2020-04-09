@@ -556,6 +556,7 @@ function status_loop() {
         done
         check
         display_banner
+    fi
 }
 
 function update_script() {
