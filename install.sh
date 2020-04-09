@@ -517,8 +517,10 @@ function status_loop() {
 	echo -e "${YELLOW}======================================================================================${NC}"
 	echo
 	$COIN_CLI getinfo
+	echo
 	echo -e "${YELLOW}Mongodb on block $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight')${NC}"
 	sudo chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"
+	echo
 	NUM='30'
 	MSG1="${CYAN}Refreshes every 30 seconds while syncing to chain. Refresh loop will stop automatically once it's fully synced.${NC}"
 	MSG2=''
