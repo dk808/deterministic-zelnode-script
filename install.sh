@@ -391,6 +391,7 @@ function install_zelflux() {
     	echo -e "${YELLOW}Mongodb already installed...${NC}"
 	sudo systemctl enable mongod
 	install_nodejs
+	mongo_backup
 	zelflux
     else
     	if [[ $(lsb_release -r) = *16.04* ]]; then
@@ -398,24 +399,28 @@ function install_zelflux() {
 	    echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
 	    install_mongod
 	    install_nodejs
+	    mongo_backup
 	    zelflux
 	elif [[ $(lsb_release -r) = *18.04* ]]; then
 	    wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
 	    echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
 	    install_mongod
 	    install_nodejs
+	    mongo_backup
 	    zelflux
 	elif [[ $(lsb_release -d) = *Debian* ]] && [[ $(lsb_release -d) = *9* ]]; then
 	    wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
 	    echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/debian stretch/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
 	    install_mongod
 	    install_nodejs
+	    mongo_backup
 	    zelflux
 	elif [[ $(lsb_release -d) = *Debian* ]] && [[ $(lsb_release -d) = *10* ]]; then
 	    wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
 	    echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
 	    install_mongod
 	    install_nodejs
+	    mongo_backup
 	    zelflux
 	fi
     fi
@@ -436,6 +441,13 @@ function install_nodejs() {
 	nvm install --lts
     else
     	echo -e "${YELLOW}Nodejs already installed will skip installing it.${NC}"
+    fi
+}
+
+function mongo_backup() {
+    if whiptail --yesno "Would you like to bootstrap the Mongodb database for Zelcash?" 9 65; then
+    	wget -qO- https://www.dropbox.com/s/xjnsklffoqwf3pk/mongo-dump.tar.gz | tar xvz
+	mongorestore --port 27017 --db zelcashdata --drop ~/dump/zelcashdata
     fi
 }
 
@@ -492,28 +504,61 @@ function set_pm2log() {
 }
 
 function status_loop() {
+    if [ -d "/home/$USERNAME/dump" ]; then 
     while true
     do
     	clear
 	echo -e "${YELLOW}======================================================================================"
-	echo -e "${GREEN} ZELNODE IS SYNCING"
+	echo -e "${GREEN} ZELNODE AND MONGODB IS SYNCING"
 	echo -e " THIS SCREEN REFRESHES EVERY 30 SECONDS"
 	echo -e " CHECK BLOCK HEIGHT AT https://explorer.zel.cash/"
 	echo -e " YOU COULD START YOUR ZELNODE FROM YOUR CONTROL WALLET WHILE IT SYNCS"
+	echo -e " MONGODB SYNCING COULD TAKE SOME MINUTES PLEASE BE PATIENT"
 	echo -e "${YELLOW}======================================================================================${NC}"
 	echo
 	$COIN_CLI getinfo
+	echo
+	echo -e "${YELLOW}Mongodb on block $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight')${NC}"
 	sudo chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"
+	echo
 	NUM='30'
 	MSG1="${CYAN}Refreshes every 30 seconds while syncing to chain. Refresh loop will stop automatically once it's fully synced.${NC}"
 	MSG2=''
 	spinning_timer
 	if [[ $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]]; then
-	    break
+	    if [[ $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight') == $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') ]]; then
+	        break
+	    fi
 	fi
     done
+    rm -rf dump
+    zelbench-cli restartnodebenchmarks > /dev/null 2>&1
     check
     display_banner
+    else
+        while true
+        do
+    	    clear
+	    echo -e "${YELLOW}======================================================================================"
+	    echo -e "${GREEN} ZELNODE AND IS SYNCING"
+	    echo -e " THIS SCREEN REFRESHES EVERY 30 SECONDS"
+	    echo -e " CHECK BLOCK HEIGHT AT https://explorer.zel.cash/"
+	    echo -e " YOU COULD START YOUR ZELNODE FROM YOUR CONTROL WALLET WHILE IT SYNCS"
+	    echo -e "${YELLOW}======================================================================================${NC}"
+	    echo
+	    $COIN_CLI getinfo
+	    sudo chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"
+	    NUM='30'
+	    MSG1="${CYAN}Refreshes every 30 seconds while syncing to chain. Refresh loop will stop automatically once it's fully synced.${NC}"
+	    MSG2=''
+	    spinning_timer
+	    if [[ $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]]; then
+	        break
+	    fi
+        done
+        check
+        display_banner
+    fi
 }
 
 function update_script() {
@@ -547,6 +592,16 @@ function check() {
     	echo -e "${CHECK_MARK} ${CYAN}zkSNARK params installed${NC}" && sleep 1
     else
     	echo -e "${X_MARK} ${CYAN}zkSNARK params not installed${NC}" && sleep 1
+    fi
+    if docker -v > /dev/null; then
+	echo -e "${CHECK_MARK} ${CYAN}Docker is installed${NC}" && sleep 1
+    else
+    	echo -e "${X_MARK} ${CYAN}Docker is not install${NC}" && sleep 1
+    fi
+    if groups $USERNAME | grep docker > /dev/null; then
+	echo -e "${CHECK_MARK} ${CYAN}${USERNAME} is in the docker group${NC}" && sleep 1
+    else
+    	echo -e "${X_MARK} ${CYAN}${USERNAME} is not in the docker group${NC}" && sleep 1
     fi
     if pgrep mongod > /dev/null; then
     	echo -e "${CHECK_MARK} ${CYAN}Mongodb is installed and running${NC}" && sleep 1
