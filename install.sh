@@ -496,7 +496,7 @@ function pm2_logrotate() {
 }
 
 function set_pm2log() {
-    pm2 set pm2-logrotate:max_size 5K >/dev/null
+    pm2 set pm2-logrotate:max_size 5M >/dev/null
     pm2 set pm2-logrotate:retain 6 >/dev/null
     pm2 set pm2-logrotate:compress true >/dev/null
     pm2 set pm2-logrotate:workerInterval 3600 >/dev/null
