@@ -496,11 +496,11 @@ function pm2_logrotate() {
 }
 
 function set_pm2log() {
-    pm2 set pm2-logrotate:max_size 5K >/dev/null
+    pm2 set pm2-logrotate:max_size 5M >/dev/null
     pm2 set pm2-logrotate:retain 6 >/dev/null
     pm2 set pm2-logrotate:compress true >/dev/null
     pm2 set pm2-logrotate:workerInterval 3600 >/dev/null
-    pm2 set pm2-logrotate:rotateInterval 0 12 * * 0 >/dev/null
+    pm2 set pm2-logrotate:rotateInterval '0 12 * * 0' >/dev/null
 }
 
 function status_loop() {
@@ -519,7 +519,7 @@ function status_loop() {
 	$COIN_CLI getinfo
 	echo
 	echo -e "${YELLOW}Mongodb on block $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight')${NC}"
-	sudo chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"
+	sleep 2
 	echo
 	NUM='30'
 	MSG1="${CYAN}Refreshes every 30 seconds while syncing to chain. Refresh loop will stop automatically once it's fully synced.${NC}"
