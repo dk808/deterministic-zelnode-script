@@ -506,7 +506,7 @@ EOF
 
 function pm2_startup() {
     pm2 startup systemd -u $USERNAME
-    sudo env PATH=$PATH:/home/$USERNAME/.nvm/versions/node/v12.16.1/bin pm2 startup systemd -u $USERNAME --hp /home/$USERNAME
+    sudo env PATH=$PATH:/home/$USERNAME/.nvm/versions/node/$(node -v)/bin pm2 startup systemd -u $USERNAME --hp /home/$USERNAME
     pm2 start ~/zelflux/start.sh --name zelflux
     pm2 save
     sleep 2
