@@ -24,7 +24,7 @@ COIN_NAME='zelcash'
 #wallet information
 
 UPDATE_FILE='update.sh'
-BOOTSTRAP_ZIP='https://www.dropbox.com/s/ioxzqainqojenor/zel-bootstrap.zip'
+BOOTSTRAP_ZIP='https://www.dropbox.com/s/kyqe8ji3g1yetfx/zel-bootstrap.zip'
 BOOTSTRAP_ZIPFILE='zel-bootstrap.zip'
 CONFIG_DIR='.zelcash'
 CONFIG_FILE='zelcash.conf'
