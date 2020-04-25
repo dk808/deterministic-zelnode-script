@@ -50,6 +50,8 @@ SEA="\\033[38;5;49m"
 GREEN='\033[1;32m'
 CYAN='\033[1;36m'
 NC='\033[0m'
+BLINKRED='\033[1;31;5m'
+BLINKSEA="\\033[38;5;49;5m"
 
 #emoji codes
 CHECK_MARK="${GREEN}\xE2\x9C\x94${NC}"
@@ -356,7 +358,7 @@ function log_rotate() {
     sleep 1
     if [ -f /etc/logrotate.d/zeldebuglog ]; then
         echo -e "${YELLOW}Existing log rotate conf found, backing up to ~/zeldebuglogrotate.old ...${NC}"
-	sudo mv /etc/logrotate.d/zeldebuglog ~/zeldebuglogrotate.old;
+	sudo mv /etc/logrotate.d/zeldebuglog ~/zeldebuglogrotate.old
 	sleep 2
     fi
     sudo touch /etc/logrotate.d/zeldebuglog
@@ -389,9 +391,11 @@ function install_zelflux() {
     sudo ufw allow $MDBPORT/tcp
     if mongod --version > /dev/null 2>&1; then
     	echo -e "${YELLOW}Mongodb already installed...${NC}"
+	sudo systemctl start mongod
 	sudo systemctl enable mongod
 	install_nodejs
 	mongo_backup
+	mongo_logrotate
 	zelflux
     else
     	if [[ $(lsb_release -r) = *16.04* ]]; then
@@ -430,8 +434,11 @@ function install_zelflux() {
 function install_mongod() {
     sudo apt-get update
     sudo apt-get install mongodb-org -y
-    sudo service mongod start
+    sudo systemctl daemon-reload
+    sudo systemctl start mongod
     sudo systemctl enable mongod
+    sleep 5
+    mongo_logrotate
 }
 
 function install_nodejs() {
@@ -449,6 +456,28 @@ function mongo_backup() {
     	wget -qO- https://www.dropbox.com/s/xjnsklffoqwf3pk/mongo-dump.tar.gz | tar xvz
 	mongorestore --port 27017 --db zelcashdata --drop ~/dump/zelcashdata
     fi
+}
+
+function mongo_logrotate() {
+    echo -e "${YELLOW}Configuring log rotate function for Mongodb logs...${NC}"
+    sleep 1
+    if [ -f /etc/logrotate.d/mongolog ]; then
+    	echo -e "${YELLOW}Existing log rotate conf found, backing up to ~/mongolog.old ...${NC}"
+	sudo mv /etc/logrotate.d/mongolog ~/mongolog.old
+	sleep 2
+    fi
+    sudo touch /etc/logrotate.d/mongolog
+    sudo chown "$USERNAME":"$USERNAME" /etc/logrotate.d/mongolog
+    cat << EOF > /etc/logrotate.d/mongolog
+/var/log/mongodb/*.log {
+  compress
+  copytruncate
+  missingok
+  daily
+  rotate 14
+}
+EOF
+    sudo chown root:root /etc/logrotate.d/mongolog
 }
 
 function zelflux() {
@@ -518,20 +547,27 @@ function status_loop() {
 	echo
 	$COIN_CLI getinfo
 	echo
-	echo -e "${YELLOW}Mongodb on block $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight')${NC}"
+	if [[ $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]]; then
+	    echo -e "${CYAN}Zelnode on block ${GREEN}$(${COIN_CLI} getinfo | jq '.blocks')${NC}"
+	else
+	    echo -e "${CYAN}Zelnode on block ${BLINKRED}$(${COIN_CLI} getinfo | jq '.blocks')${NC}"
+	fi
+	if [[ $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') == $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight') ]]; then
+	    echo -e "${CYAN}Mongodb on block ${GREEN}$(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight')${NC}"
+	else
+	    echo -e "${CYAN}Mongodb on block ${BLINKRED}$(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight')${NC}"
+	fi
 	sleep 2
 	echo
 	NUM='30'
-	MSG1="${CYAN}Refreshes every 30 seconds while syncing to chain. Refresh loop will stop automatically once it's fully synced.${NC}"
+	MSG1="${CYAN}Refreshes every 30 seconds while syncing chain and data. Refresh loop will stop automatically once it's fully synced.${NC}"
 	MSG2=''
 	spinning_timer
-	if [[ $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]]; then
-	    if [[ $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight') == $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') ]]; then
-	        break
-	    fi
+	if [[ $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]] && [[ $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight') == $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') ]]; then
+	    break
 	fi
     done
-    rm -rf dump
+    rm -rf dump && sleep 3
     zelbench-cli restartnodebenchmarks > /dev/null 2>&1
     check
     display_banner
@@ -570,12 +606,14 @@ COIN_NAME='zelcash'
 COIN_DAEMON='zelcashd'
 COIN_CLI='zelcash-cli'
 COIN_PATH='/usr/local/bin'
+sudo systemctl stop \$COIN_NAME
 \$COIN_CLI stop > /dev/null 2>&1 && sleep 2
 sudo killall \$COIN_DAEMON > /dev/null 2>&1
+sudo killall -s SIGKILL zelbenchd > /dev/null 2>&1
 sudo apt-get update
 sudo apt-get install --only-upgrade \$COIN_NAME -y
 sudo chmod 755 \${COIN_PATH}/\${COIN_NAME}*
-\$COIN_DAEMON > /dev/null 2>&1
+sudo systemctl start \$COIN_NAME > /dev/null 2>&1
 EOF
     sudo chmod +x update.sh
 }
@@ -644,7 +682,7 @@ function display_banner() {
     echo -e "${YELLOW}   PM2 is now managing Zelflux to start up on reboots.${NC}"
     pm2 list
     echo
-    echo -e "${PIN} ${CYAN}To access your frontend to Zelflux enter this in as your url: ${SEA}${WANIP}:${ZELFRONTPORT}${NC}"
+    echo -e "${PIN} ${CYAN}To access your frontend to Zelflux enter this in as your url: ${BLINKSEA}${WANIP}:${ZELFRONTPORT}${NC}"
     echo -e "${YELLOW}================================================================================================================================${NC}"
 }
 
