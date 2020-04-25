@@ -445,7 +445,7 @@ function install_nodejs() {
     if ! node -v > /dev/null 2>&1; then
     	curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
 	. ~/.profile
-	nvm install 12.16.1
+	nvm install --lts
     else
     	echo -e "${YELLOW}Nodejs already installed will skip installing it.${NC}"
     fi
@@ -506,7 +506,7 @@ EOF
 
 function pm2_startup() {
     pm2 startup systemd -u $USERNAME
-    sudo env PATH=$PATH:/home/$USERNAME/.nvm/versions/node/v12.16.1/bin pm2 startup systemd -u $USERNAME --hp /home/$USERNAME
+    sudo env PATH=$PATH:/home/$USERNAME/.nvm/versions/node/$(node -v)/bin pm2 startup systemd -u $USERNAME --hp /home/$USERNAME
     pm2 start ~/zelflux/start.sh --name zelflux
     pm2 save
     sleep 2
