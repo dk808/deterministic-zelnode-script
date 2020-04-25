@@ -445,7 +445,7 @@ function install_nodejs() {
     if ! node -v > /dev/null 2>&1; then
     	curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
 	. ~/.profile
-	nvm install --lts
+	nvm install 12.16.1
     else
     	echo -e "${YELLOW}Nodejs already installed will skip installing it.${NC}"
     fi
