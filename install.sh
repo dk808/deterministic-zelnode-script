@@ -368,8 +368,8 @@ function log_rotate() {
   compress
   copytruncate
   missingok
-  weekly
-  rotate 4
+  daily
+  rotate 7
 }
 
 /home/$USERNAME/.zelbenchmark/debug.log {
