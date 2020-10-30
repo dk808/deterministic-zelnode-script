@@ -492,10 +492,26 @@ function zelflux() {
         sudo rm -rf zelflux
     fi
     ZELID=$(whiptail --inputbox "Enter your ZelID found in the Zelcore+/Apps section of your Zelcore" 8 71 3>&1 1>&2 2>&3)
-	CRUXID=$(whiptail --inputbox "Enter your CruxID that you created in the Apps section of your Zelcore. If you don't have one just skip this part and add one later." 8 75 3>&1 1>&2 2>&3)
-    git clone https://github.com/zelcash/zelflux.git
-    touch ~/zelflux/config/userconfig.js
-    cat << EOF > ~/zelflux/config/userconfig.js
+    CRUXID=$(whiptail --inputbox "Enter your CruxID that you created in the Apps section of your Zelcore. If you don't have one just skip this part and add one later." 8 75 3>&1 1>&2 2>&3)
+    if whiptail --yesno "Are you planning to run the Kadena app? Please note that only Super/BAMF nodes are allowed to run this app." 8 60 3>&1 1>&2 2>&3; then
+        KADENA=$(whiptail --inputbox "Please enter your Kadena address from Zelcore. Copy and paste the first address under the QR code. Do not edit out anything just paste what you copied." 8 85 3>&1 1>&2 2>&3)
+        git clone https://github.com/zelcash/zelflux.git
+        touch ~/zelflux/config/userconfig.js
+        cat << EOF > ~/zelflux/config/userconfig.js
+module.exports = {
+      initial: {
+        ipaddress: '${WANIP}',
+        zelid: '${ZELID}',
+        cruxid: '${CRUXID}',
+        kadena: '${KADENA}',
+        testnet: false
+      }
+    }
+EOF
+    else
+        git clone https://github.com/zelcash/zelflux.git
+        touch ~/zelflux/config/userconfig.js
+        cat << EOF > ~/zelflux/config/userconfig.js
 module.exports = {
       initial: {
         ipaddress: '${WANIP}',
@@ -505,6 +521,7 @@ module.exports = {
       }
     }
 EOF
+    fi
     if ! pm2 -v > /dev/null 2>&1; then
         npm i -g pm2
         pm2_startup

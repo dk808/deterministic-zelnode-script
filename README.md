@@ -1,7 +1,7 @@
 # Zelnode and Zelflux
-Script needs to be ran under a sudo user and not under root. It will build using zel apt packages and should work on Ubuntu 18 and Debian 10. Script will install firewall, daemon service, create update script, create zelflux start script, and use pm2 to manage Zelflux on server restarts/reboots. You could find a detailed guide in the [Wiki](https://github.com/dk808/deterministic-zelnode-script/wiki).
+Script needs to be ran under a sudo user and not under root. It will build using zel apt packages and should work on Ubuntu 18. Script will install firewall, daemon service, bootstrap the chain, bootstrap collections(optional), create log rotations, create update script, and use pm2 to manage Zelflux on server restarts/reboots. You could find a detailed guide in the [Wiki](https://github.com/dk808/deterministic-zelnode-script/wiki).
 
-**_Note: All test runs of this install script have only been done on VPS platforms and most likely will not work on personal home servers. USE AT OWN RISK._** 
+:warning: **_All test runs of this install script have only been done on VPS platforms using Ubuntu 18 and most likely will not work on personal home servers. USE AT OWN RISK._** 
 
 ## Docker Instructions
 After creating a sudo user to run your ZelNode, run the following commands while still in root.
@@ -23,8 +23,11 @@ User input will be prompted so have in hand the following.
 3.  Collateral output index usually 0/1
 4.  Your ZelID for Zelflux
 5.  Your CruxID(create one in apps section of your ZelCore wallet) for Zelflux
+6.  Your Kadena address if planning to run the Kadena app. Copy the first address format under the QR code and paste it when prompted. See example below of full address format to paste.  
 
-**_Note: Your ZelID is not your Zelcore username. Please check [Wiki guide](https://github.com/dk808/deterministic-zelnode-script/wiki) for more info._**
+:information_source: **kadena:20fa2a2126c3ef0c903eaeb520a8945b7ae4c40c60bf4c6faa716e3fefafb4c8?chainid=0**  
+
+:memo: **_Your ZelID is not your Zelcore username. Please check [Wiki guide](https://github.com/dk808/deterministic-zelnode-script/wiki) for more info._**
 
 ```
 bash -i <(curl -s https://raw.githubusercontent.com/dk808/deterministic-zelnode-script/master/install.sh)
