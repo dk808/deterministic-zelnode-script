@@ -504,7 +504,7 @@ module.exports = {
         zelid: '${ZELID}',
         cruxid: '${CRUXID}',
         kadena: '${KADENA}',
-        testnet: false
+        testnet: false,
       }
     }
 EOF
@@ -517,7 +517,7 @@ module.exports = {
         ipaddress: '${WANIP}',
         zelid: '${ZELID}',
         cruxid: '${CRUXID}',
-        testnet: false
+        testnet: false,
       }
     }
 EOF
