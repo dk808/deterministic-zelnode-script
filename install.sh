@@ -68,7 +68,7 @@ sudo echo -e "$(whoami) ALL=(ALL) NOPASSWD:ALL" | sudo EDITOR='tee -a' visudo
 echo -e "${YELLOW}====================================================================="
 echo -e " Zelnode & Zelflux Install V2"
 echo -e "=====================================================================${NC}"
-echo -e "${CYAN}Sept 2020, updated and created by dk808 from Zel's team and AltTank Army."
+echo -e "${CYAN}Dec 2020, updated and created by dk808 from the AltTank Army."
 echo -e "Special thanks to Goose-Tech, Skyslayer, & Packetflow."
 echo -e "Zelnode setup starting, press [CTRL+C] to cancel.${NC}"
 sleep 5
@@ -492,7 +492,6 @@ function zelflux() {
         sudo rm -rf zelflux
     fi
     ZELID=$(whiptail --inputbox "Enter your ZelID found in the Zelcore+/Apps section of your Zelcore" 8 71 3>&1 1>&2 2>&3)
-    CRUXID=$(whiptail --inputbox "Enter your CruxID that you created in the Apps section of your Zelcore. If you don't have one just skip this part and add one later." 8 75 3>&1 1>&2 2>&3)
     if whiptail --yesno "Are you planning to run the Kadena app? Please note that only Super/BAMF nodes are allowed to run this app." 8 60 3>&1 1>&2 2>&3; then
         KADENA=$(whiptail --inputbox "Please enter your Kadena address from Zelcore. Copy and paste the first address under the QR code. Do not edit out anything just paste what you copied." 8 85 3>&1 1>&2 2>&3)
         git clone https://github.com/zelcash/zelflux.git
@@ -502,7 +501,6 @@ module.exports = {
       initial: {
         ipaddress: '${WANIP}',
         zelid: '${ZELID}',
-        cruxid: '${CRUXID}',
         kadena: '${KADENA}',
         testnet: false,
       }
@@ -516,7 +514,6 @@ module.exports = {
       initial: {
         ipaddress: '${WANIP}',
         zelid: '${ZELID}',
-        cruxid: '${CRUXID}',
         testnet: false,
       }
     }

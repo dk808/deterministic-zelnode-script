@@ -22,8 +22,7 @@ User input will be prompted so have in hand the following.
 2.  Collateral txid
 3.  Collateral output index usually 0/1
 4.  Your ZelID for Zelflux
-5.  Your CruxID(create one in apps section of your ZelCore wallet) for Zelflux
-6.  Your Kadena address if planning to run the Kadena app. Copy the first address format under the QR code and paste it when prompted. See example below of full address format to paste.  
+5.  Your Kadena address if planning to run the Kadena app. Copy the first address format under the QR code and paste it when prompted. See example below of full address format to paste.  
 
 :information_source: **kadena:20fa2a2126c3ef0c903eaeb520a8945b7ae4c40c60bf4c6faa716e3fefafb4c8?chainid=0**  
 
