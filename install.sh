@@ -563,19 +563,19 @@ function status_loop() {
             echo -e "${YELLOW}======================================================================================"
             echo -e "${GREEN} ZELNODE AND MONGODB IS SYNCING"
             echo -e " THIS SCREEN REFRESHES EVERY 30 SECONDS"
-            echo -e " CHECK BLOCK HEIGHT AT https://explorer.zel.cash/"
+            echo -e " CHECK BLOCK HEIGHT AT https://explorer.zel.network/"
             echo -e " YOU COULD START YOUR ZELNODE FROM YOUR CONTROL WALLET WHILE IT SYNCS"
             echo -e " MONGODB SYNCING COULD TAKE SOME MINUTES PLEASE BE PATIENT"
             echo -e "${YELLOW}======================================================================================${NC}"
             echo
             $COIN_CLI getinfo
             echo
-            if [[ $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]]; then
+            if [[ $(wget -nv -qO - https://explorer.zel.network/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]]; then
                 echo -e "${CYAN}Zelnode on block ${GREEN}$(${COIN_CLI} getinfo | jq '.blocks')${NC}"
             else
                 echo -e "${CYAN}Zelnode on block ${BLINKRED}$(${COIN_CLI} getinfo | jq '.blocks')${NC}"
             fi
-            if [[ $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') == $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight') ]]; then
+            if [[ $(wget -nv -qO - https://explorer.zel.network/api/status?q=getInfo | jq '.info.blocks') == $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight') ]]; then
                 echo -e "${CYAN}Mongodb on block ${GREEN}$(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight')${NC}"
             else
                 echo -e "${CYAN}Mongodb on block ${BLINKRED}$(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight')${NC}"
@@ -586,7 +586,7 @@ function status_loop() {
             MSG1="${CYAN}Refreshes every 30 seconds while syncing chain and data. Refresh loop will stop automatically once it's fully synced.${NC}"
             MSG2=''
             spinning_timer
-            if [[ $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]] && [[ $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight') == $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') ]]; then
+            if [[ $(wget -nv -qO - https://explorer.zel.network/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]] && [[ $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight') == $(wget -nv -qO - https://explorer.zel.network/api/status?q=getInfo | jq '.info.blocks') ]]; then
                 break
             fi
         done
@@ -601,7 +601,7 @@ function status_loop() {
             echo -e "${YELLOW}======================================================================================"
             echo -e "${GREEN} ZELNODE AND IS SYNCING"
             echo -e " THIS SCREEN REFRESHES EVERY 30 SECONDS"
-            echo -e " CHECK BLOCK HEIGHT AT https://explorer.zel.cash/"
+            echo -e " CHECK BLOCK HEIGHT AT https://explorer.zel.network/"
             echo -e " YOU COULD START YOUR ZELNODE FROM YOUR CONTROL WALLET WHILE IT SYNCS"
             echo -e "${YELLOW}======================================================================================${NC}"
             echo
@@ -611,7 +611,7 @@ function status_loop() {
             MSG1="${CYAN}Refreshes every 30 seconds while syncing to chain. Refresh loop will stop automatically once it's fully synced.${NC}"
             MSG2=''
             spinning_timer
-            if [[ $(wget -nv -qO - https://explorer.zel.cash/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]]; then
+            if [[ $(wget -nv -qO - https://explorer.zel.network/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]]; then
                 break
             fi
         done
