@@ -1,37 +1,35 @@
 #!/bin/bash
 
 ###############################################################################################################################################################################################################
-# IF PLANNING TO RUN ZELNODE FROM HOME/OFFICE/PERSONAL EQUIPMENT & NETWORK!!!
-# You must understand the implications of running a ZelNode on your on equipment and network. There are many possible security issues. DYOR!!!
-# Running a ZelNode from home should only be done by those with experience/knowledge of how to set up the proper security.
-# It is recommended for most operators to use a VPS to run a ZelNode
+# IF PLANNING TO RUN FLUXNODE FROM HOME/OFFICE/PERSONAL EQUIPMENT & NETWORK!!!
+# You must understand the implications of running a FluxNode on your on equipment and network. There are many possible security issues. DYOR!!!
+# Running a FluxNode from home should only be done by those with experience/knowledge of how to set up the proper security.
+# It is recommended for most operators to use a VPS to run a FluxNode
 #
 # **Potential Issues (not an exhaustive list):**
 # 1. Your home network IP address will be displayed to the world. Without proper network security in place, a malicious person sniff around your IP for vulnerabilities to access your network.
-# 2. Port forwarding: The p2p port for ZelCash will need to be open.
+# 2. Port forwarding: The p2p port for Flux will need to be open.
 # 3. DDOS: VPS providers typically provide mitigation tools to resist a DDOS attack, while home networks typically don't have these tools.
-# 4. Zelcash daemon is ran with sudo permissions, meaning the daemon has elevated access to your system. **Do not run a ZelNode on equipment that also has a funded wallet loaded.**
-# 5. Static vs. Dynamic IPs: If you have a revolving IP, every time the IP address changes, the ZelNode will fail and need to be stood back up.
-# 6. Home connections typically have a monthly data cap. ZelNodes will use 2.5 - 6 TB monthly usage depending on ZelNode tier, which can result in overage charges. Check your ISP agreement.
-# 7. Many home connections provide adequate download speeds but very low upload speeds. ZelNodes require 100mbps (12.5MB/s) download **AND** upload speeds. Ensure your ISP plan can provide this continually.
-# 8. ZelNodes can saturate your network at times. If you are sharing the connection with other devices at home, its possible to fail a benchmark if network is saturated.
+# 4. Flux daemon is ran with sudo permissions, meaning the daemon has elevated access to your system. **Do not run a FluxNode on equipment that also has a funded wallet loaded.**
+# 5. Home connections typically have a monthly data cap. FluxNodes will use 2.5 - 6 TB monthly usage depending on ZelNode tier, which can result in overage charges. Check your ISP agreement.
+# 6. Many home connections provide adequate download speeds but very low upload speeds. FluxNodes require 100mbps (12.5MB/s) download **AND** upload speeds. Ensure your ISP plan can provide this continually.
+# 7. FluxNodes can saturate your network at times. If you are sharing the connection with other devices at home, its possible to fail a benchmark if network is saturated.
 ###############################################################################################################################################################################################################
 
 ###### you must be logged in as a sudo user, not root #######
 
-COIN_NAME='zelcash'
+COIN_NAME='flux'
 
 #wallet information
 
 UPDATE_FILE='update.sh'
-BOOTSTRAP_ZIP='https://www.dropbox.com/s/kyqe8ji3g1yetfx/zel-bootstrap.zip'
-BOOTSTRAP_ZIPFILE='zel-bootstrap.zip'
-CONFIG_DIR='.zelcash'
-CONFIG_FILE='zelcash.conf'
+BOOTSTRAP_TAR='https://www.dropbox.com/s/2f2oa4sezcl2b7f/flux-bootstrap.tar.gz'
+CONFIG_DIR='.flux'
+CONFIG_FILE='flux.conf'
 RPCPORT='16124'
 PORT='16125'
-COIN_DAEMON='zelcashd'
-COIN_CLI='zelcash-cli'
+COIN_DAEMON='fluxd'
+COIN_CLI='flux-cli'
 COIN_PATH='/usr/local/bin'
 USERNAME="$(whoami)"
 
@@ -66,11 +64,11 @@ clear
 sleep 5
 sudo echo -e "$(whoami) ALL=(ALL) NOPASSWD:ALL" | sudo EDITOR='tee -a' visudo
 echo -e "${YELLOW}====================================================================="
-echo -e " Zelnode & Zelflux Install V2"
+echo -e " FluxNode Install"
 echo -e "=====================================================================${NC}"
-echo -e "${CYAN}Dec 2020, updated and created by dk808 from the AltTank Army."
+echo -e "${CYAN}March 2021, updated and created by dk808 from the AltTank Army."
 echo -e "Special thanks to Goose-Tech, Skyslayer, & Packetflow."
-echo -e "Zelnode setup starting, press [CTRL+C] to cancel.${NC}"
+echo -e "FluxNode setup starting, press [CTRL+C] to cancel.${NC}"
 sleep 5
 if [ "$USERNAME" = "root" ]; then
     echo -e "${CYAN}You are currently logged in as ${GREEN}root${CYAN}, please switch to the username you just created.${NC}"
@@ -84,25 +82,20 @@ function wipe_clean() {
     sudo systemctl stop $COIN_NAME > /dev/null 2>&1 && sleep 2
     $COIN_CLI stop > /dev/null 2>&1 && sleep 2
     sudo killall -s SIGKILL $COIN_DAEMON > /dev/null 2>&1
-    zelbench-cli stop > /dev/null 2>&1
-    sudo killall -s SIGKILL zelbenchd > /dev/null 2>&1
+    fluxbench-cli stop > /dev/null 2>&1
+    sudo killall -s SIGKILL fluxbenchd > /dev/null 2>&1
     sudo rm ${COIN_PATH}/zel* > /dev/null 2>&1 && sleep 1
     sudo rm /usr/bin/${COIN_NAME}* > /dev/null 2>&1 && sleep 1
-    sudo apt-get purge zelcash zelbench -y > /dev/null 2>&1 && sleep 1
+    sudo apt-get purge flux fluxbench -y > /dev/null 2>&1 && sleep 1
     sudo apt-get autoremove -y > /dev/null 2>&1 && sleep 1
-    sudo rm /etc/apt/sources.list.d/zelcash.list > /dev/null 2>&1 && sleep 1
+    sudo rm /etc/apt/sources.list.d/flux.list > /dev/null 2>&1 && sleep 1
     tmux kill-server > /dev/null 2>&1
     pm2 unstartup > /dev/null 2>&1
-    pm2 del zelflux > /dev/null 2>&1
+    pm2 del flux > /dev/null 2>&1
     pm2 flush > /dev/null 2>&1
     sudo rm -rf zelflux && sleep 1
-    sudo rm -rf ~/$CONFIG_DIR/determ_zelnodes ~/$CONFIG_DIR/sporks ~/$CONFIG_DIR/database ~/$CONFIG_DIR/blocks ~/$CONFIG_DIR/chainstate && sleep 1
-    sudo rm -rf .zelbenchmark && sleep 1
-    rm -rf $BOOTSTRAP_ZIPFILE && sleep 1
+    sudo rm -rf .fluxbenchmark && sleep 1
     rm $UPDATE_FILE > /dev/null 2>&1
-    rm restart_zelflux.sh > /dev/null 2>&1
-    rm zelnodeupdate.sh > /dev/null 2>&1
-    rm start.sh > /dev/null 2>&1
 }
 
 function spinning_timer() {
@@ -174,35 +167,51 @@ function install_packages() {
     if [[ $(lsb_release -d) = *Debian* ]] && [[ $(lsb_release -d) = *9* ]]; then
         sudo apt-get install dirmngr apt-transport-https -y
     fi
-    sudo apt-get install software-properties-common -y
-    sudo apt-get update -y
-    sudo apt-get upgrade -y
-    sudo apt-get install nano htop pwgen ufw figlet tmux jq -y
-    sudo apt-get install build-essential libtool pkg-config -y
-    sudo apt-get install libc6-dev m4 g++-multilib -y
-    sudo apt-get install autoconf ncurses-dev unzip git python python-zmq -y
-    sudo apt-get install wget curl bsdmainutils automake fail2ban -y
-    sudo apt-get remove sysbench -y
+    sudo apt install software-properties-common -y
+    sudo apt update -y
+    sudo apt upgrade -y
+    sudo apt remove sysbench -y
+    sudo apt install -y \
+        nano \
+        htop \
+        pwgen \
+        ufw \
+        figlet \
+        jq \
+        build-essential \
+        libtool \
+        pkg-config \
+        libc6-dev \
+        m4 \
+        g++-multilib \
+        autoconf \
+        ncurses-dev \
+        unzip \
+        git \
+        python3 \
+        python3-zmq \
+        wget \
+        curl \
+        bsdmainutils \
+        automake \
+        fail2ban
     echo -e "${YELLOW}Packages complete...${NC}"
 }
 
 function create_conf() {
     echo -e "${YELLOW}Creating Conf File...${NC}"
-    if [ -f ~/$CONFIG_DIR/$CONFIG_FILE ]; then
+    if [ -f $HOME/$CONFIG_DIR/$CONFIG_FILE ]; then
         echo -e "${CYAN}Existing conf file found backing up to $COIN_NAME.old ...${NC}"
-        mv ~/$CONFIG_DIR/$CONFIG_FILE ~/$CONFIG_DIR/$COIN_NAME.old;
+        mv $HOME/$CONFIG_DIR/$CONFIG_FILE $HOME/$CONFIG_DIR/$COIN_NAME.old;
     fi
     RPCUSER=$(pwgen -1 8 -n)
     PASSWORD=$(pwgen -1 20 -n)
-    zelnodeprivkey=$(whiptail --title "ZELNODE PRIVKEY" --inputbox "Enter your Zelnode Privkey generated by your Zelcore/Zelmate wallet" 8 72 3>&1 1>&2 2>&3)
-    zelnodeoutpoint=$(whiptail --title "ZELNODE OUTPOINT" --inputbox "Enter your Zelnode collateral txid" 8 72 3>&1 1>&2 2>&3)
-    zelnodeindex=$(whiptail --title "ZELNODE INDEX" --inputbox "Enter your Zelnode collateral output index usually a 0/1" 8 60 3>&1 1>&2 2>&3)
-    if [ "x$PASSWORD" = "x" ]; then
-        PASSWORD=${WANIP}-$(date +%s)
-    fi
-    mkdir ~/$CONFIG_DIR > /dev/null 2>&1
-    touch ~/$CONFIG_DIR/$CONFIG_FILE
-    cat << EOF > ~/$CONFIG_DIR/$CONFIG_FILE
+    zelnodeprivkey=$(whiptail --title "FLUXNODE PRIVKEY" --inputbox "Enter your Fluxnode Privkey generated by your Zelcore wallet" 8 72 3>&1 1>&2 2>&3)
+    zelnodeoutpoint=$(whiptail --title "FLUXNODE OUTPOINT" --inputbox "Enter your Fluxnode collateral txid" 8 72 3>&1 1>&2 2>&3)
+    zelnodeindex=$(whiptail --title "FLUXNODE INDEX" --inputbox "Enter your Fluxnode collateral output index usually a 0/1" 8 61 3>&1 1>&2 2>&3)
+    mkdir $HOME/$CONFIG_DIR > /dev/null 2>&1
+    touch $HOME/$CONFIG_DIR/$CONFIG_FILE
+    cat << EOF > $HOME/$CONFIG_DIR/$CONFIG_FILE
 rpcuser=$RPCUSER
 rpcpassword=$PASSWORD
 rpcallowip=127.0.0.1
@@ -219,9 +228,10 @@ txindex=1
 listen=1
 externalip=$WANIP
 bind=$WANIP
-addnode=explorer.zel.network
-addnode=explorer2.zel.network
+addnode=explorer.flux.zelcore.io
 addnode=explorer.zel.zelcore.io
+addnode=explorer.zel.network
+addnode=explorer.zelcash.online
 addnode=blockbook.zel.network
 maxconnections=256
 EOF
@@ -230,16 +240,16 @@ EOF
 
 function zel_package() {
     sudo apt-get update
-    sudo apt install zelcash zelbench -y
+    sudo apt install flux zelbench -y
     sudo chmod 755 $COIN_PATH/${COIN_NAME}*
 }
 
 function install_zel() {
-    echo -e "${YELLOW}Installing Zel apt packages...${NC}"
-    echo 'deb https://apt.zel.network/ all main' | sudo tee /etc/apt/sources.list.d/zelcash.list
+    echo -e "${YELLOW}Installing Flux apt packages...${NC}"
+    echo 'deb https://apt.runonflux.io/ '$(lsb_release -cs)' all main' | sudo tee /etc/apt/sources.list.d/flux.list
     sleep 1
-    if [ ! -f /etc/apt/sources.list.d/zelcash.list ]; then
-        echo 'deb https://zelcash.github.io/aptrepo/ all main' | sudo tee /etc/apt/sources.list.d/zelcash.list
+    if [ ! -f /etc/apt/sources.list.d/flux.list ]; then
+        echo 'deb https://apt.zel.network/ '$(lsb_release -cs)' all main' | sudo tee /etc/apt/sources.list.d/flux.list
     fi
     gpg --keyserver keyserver.ubuntu.com --recv 4B69CA27A986265D
     gpg --export 4B69CA27A986265D | sudo apt-key add -
@@ -272,22 +282,16 @@ function install_zel() {
 
 function zk_params() {
     echo -e "${YELLOW}Installing zkSNARK params...${NC}"
-    bash zelcash-fetch-params.sh
+    bash flux-fetch-params.sh
     sudo chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"
 }
 
 function bootstrap() {
-    if [[ -e ~/$CONFIG_DIR/blocks ]] && [[ -e ~/$CONFIG_DIR/chainstate ]]; then
-        rm -rf ~/$CONFIG_DIR/blocks ~/$CONFIG_DIR/chainstate
-        echo -e "${YELLOW}Downloading and installing wallet bootstrap please be patient...${NC}"
-        wget $BOOTSTRAP_ZIP
-        unzip $BOOTSTRAP_ZIPFILE -d ~/$CONFIG_DIR
-        rm -rf $BOOTSTRAP_ZIPFILE
+    if whiptail --yesno "Would you like to bootstrap the chain?" 8 42; then
+        echo -e "${YELLOW}Downloading and installing bootstrap please be patient...${NC}"
+        curl -L $BOOTSTRAP_TAR | tar xz -C $HOME/$CONFIG_DIR
     else
-        echo -e "${YELLOW}Downloading and installing wallet bootstrap please be patient...${NC}"
-        wget $BOOTSTRAP_ZIP
-        unzip $BOOTSTRAP_ZIPFILE -d ~/$CONFIG_DIR
-        rm -rf $BOOTSTRAP_ZIPFILE
+        echo -e "${YELLOW}Skipping bootstrap...${NC}"
     fi
 }
 
@@ -303,8 +307,8 @@ After=network.target
 Type=forking
 User=$USERNAME
 Group=$USERNAME
-WorkingDirectory=/home/$USERNAME/$CONFIG_DIR/
-ExecStart=$COIN_PATH/$COIN_DAEMON -datadir=/home/$USERNAME/$CONFIG_DIR/ -conf=/home/$USERNAME/$CONFIG_DIR/$CONFIG_FILE -daemon
+WorkingDirectory=$HOME/$CONFIG_DIR/
+ExecStart=$COIN_PATH/$COIN_DAEMON -datadir=$HOME/$CONFIG_DIR/ -conf=$HOME/$CONFIG_DIR/$CONFIG_FILE -daemon
 ExecStop=-$COIN_PATH/$COIN_CLI stop
 Restart=always
 RestartSec=3
@@ -355,15 +359,15 @@ function start_daemon() {
 function log_rotate() {
     echo -e "${YELLOW}Configuring log rotate function for debug and error logs...${NC}"
     sleep 1
-    if [ -f /etc/logrotate.d/zeldebuglog ]; then
-        echo -e "${YELLOW}Existing log rotate conf found, backing up to ~/zeldebuglogrotate.old ...${NC}"
-        sudo mv /etc/logrotate.d/zeldebuglog ~/zeldebuglogrotate.old
+    if [ -f /etc/logrotate.d/fluxdebuglog ]; then
+        echo -e "${YELLOW}Existing log rotate conf found, backing up to $HOME/zeldebuglogrotate.old ...${NC}"
+        sudo mv /etc/logrotate.d/zeldebuglog $HOME/fluxdebuglogrotate.old
         sleep 2
     fi
-    sudo touch /etc/logrotate.d/zeldebuglog
-    sudo chown "$USERNAME":"$USERNAME" /etc/logrotate.d/zeldebuglog
-    cat << EOF > /etc/logrotate.d/zeldebuglog
-/home/$USERNAME/.zelcash/debug.log {
+    sudo touch /etc/logrotate.d/fluxdebuglog
+    sudo chown "$USERNAME":"$USERNAME" /etc/logrotate.d/fluxdebuglog
+    cat << EOF > /etc/logrotate.d/fluxdebuglog
+$HOME/.zelcash/debug.log {
   compress
   copytruncate
   missingok
@@ -371,7 +375,7 @@ function log_rotate() {
   rotate 7
 }
 
-/home/$USERNAME/.zelbenchmark/debug.log {
+$HOME/.fluxbenchmark/debug.log {
   compress
   copytruncate
   missingok
@@ -379,7 +383,7 @@ function log_rotate() {
   rotate 2
 }
 
-/home/$USERNAME/zelflux/error.log {
+$HOME/zelflux/error.log {
   compress
   copytruncate
   missingok
@@ -387,7 +391,7 @@ function log_rotate() {
   rotate 2
 }
 EOF
-    sudo chown root:root /etc/logrotate.d/zeldebuglog
+    sudo chown root:root /etc/logrotate.d/fluxdebuglog
 }
 
 function install_zelflux() {
@@ -406,29 +410,36 @@ function install_zelflux() {
         zelflux
     else
         if [[ $(lsb_release -r) = *16.04* ]]; then
-            wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-            echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+            wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+            echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
             install_mongod
             install_nodejs
             mongo_backup
             zelflux
         elif [[ $(lsb_release -r) = *18.04* ]]; then
-            wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-            echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+            wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+            echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+            install_mongod
+            install_nodejs
+            mongo_backup
+            zelflux
+        elif [[ $(lsb_release -r) = *20.04* ]]; then
+            wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+            echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
             install_mongod
             install_nodejs
             mongo_backup
             zelflux
         elif [[ $(lsb_release -d) = *Debian* ]] && [[ $(lsb_release -d) = *9* ]]; then
-            wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-            echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/debian stretch/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+            wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+            echo "deb http://repo.mongodb.org/apt/debian stretch/mongodb-org/4.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
             install_mongod
             install_nodejs
             mongo_backup
             zelflux
         elif [[ $(lsb_release -d) = *Debian* ]] && [[ $(lsb_release -d) = *10* ]]; then
-            wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-            echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+            wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+            eecho "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
             install_mongod
             install_nodejs
             mongo_backup
@@ -450,8 +461,8 @@ function install_mongod() {
 
 function install_nodejs() {
     if ! node -v > /dev/null 2>&1; then
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-        . ~/.profile
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+        . $HOME/.profile
         nvm install --lts
     else
         echo -e "${YELLOW}Nodejs already installed will skip installing it.${NC}"
@@ -469,8 +480,8 @@ function mongo_logrotate() {
     echo -e "${YELLOW}Configuring log rotate function for Mongodb logs...${NC}"
     sleep 1
     if [ -f /etc/logrotate.d/mongolog ]; then
-        echo -e "${YELLOW}Existing log rotate conf found, backing up to ~/mongolog.old ...${NC}"
-        sudo mv /etc/logrotate.d/mongolog ~/mongolog.old
+        echo -e "${YELLOW}Existing log rotate conf found, backing up to $HOME/mongolog.old ...${NC}"
+        sudo mv /etc/logrotate.d/mongolog $HOME/mongolog.old
         sleep 2
     fi
     sudo touch /etc/logrotate.d/mongolog
@@ -495,8 +506,8 @@ function zelflux() {
     if whiptail --yesno "Are you planning to run the Kadena app? Please note that only Super/BAMF nodes are allowed to run this app." 8 60 3>&1 1>&2 2>&3; then
         KADENA=$(whiptail --inputbox "Please enter your Kadena address from Zelcore. Copy and paste the first address under the QR code. Do not edit out anything just paste what you copied." 8 85 3>&1 1>&2 2>&3)
         git clone https://github.com/zelcash/zelflux.git
-        touch ~/zelflux/config/userconfig.js
-        cat << EOF > ~/zelflux/config/userconfig.js
+        touch $HOME/zelflux/config/userconfig.js
+        cat << EOF > $HOME/zelflux/config/userconfig.js
 module.exports = {
       initial: {
         ipaddress: '${WANIP}',
@@ -508,8 +519,8 @@ module.exports = {
 EOF
     else
         git clone https://github.com/zelcash/zelflux.git
-        touch ~/zelflux/config/userconfig.js
-        cat << EOF > ~/zelflux/config/userconfig.js
+        touch $HOME/zelflux/config/userconfig.js
+        cat << EOF > $HOME/zelflux/config/userconfig.js
 module.exports = {
       initial: {
         ipaddress: '${WANIP}',
@@ -530,7 +541,7 @@ EOF
 function pm2_startup() {
     pm2 startup systemd -u $USERNAME
     sudo env PATH=$PATH:/home/$USERNAME/.nvm/versions/node/$(node -v)/bin pm2 startup systemd -u $USERNAME --hp /home/$USERNAME
-    pm2 start ~/zelflux/start.sh --name zelflux
+    pm2 start $HOME/zelflux/start.sh --name flux
     pm2 save
     sleep 2
     pm2_logrotate
@@ -538,7 +549,7 @@ function pm2_startup() {
 
 function pm2_logrotate() {
     echo -e "${YELLOW}Configuring log rotate function for pm2 logs that's managing Zelflux...${NC}"
-    if [ -d ~/.pm2/modules/pm2-logrotate ]; then
+    if [ -d $HOME/.pm2/modules/pm2-logrotate ]; then
         echo -e "${YELLOW}Pm2-logrotate already installed will skip installation...${NC}"
         set_pm2log
     else
@@ -561,21 +572,21 @@ function status_loop() {
         do
             clear
             echo -e "${YELLOW}======================================================================================"
-            echo -e "${GREEN} ZELNODE AND MONGODB IS SYNCING"
+            echo -e "${GREEN} FLUXNODE AND MONGODB IS SYNCING"
             echo -e " THIS SCREEN REFRESHES EVERY 30 SECONDS"
-            echo -e " CHECK BLOCK HEIGHT AT https://explorer.zel.network/"
-            echo -e " YOU COULD START YOUR ZELNODE FROM YOUR CONTROL WALLET WHILE IT SYNCS"
-            echo -e " MONGODB SYNCING COULD TAKE SOME MINUTES PLEASE BE PATIENT"
+            echo -e " CHECK BLOCK HEIGHT AT https://explorer.runonflux.io/"
+            echo -e " YOU COULD START YOUR FLUXNODE FROM YOUR CONTROL WALLET WHILE IT SYNCS"
+            echo -e " MONGODB SYNCING STARTS AFTER CHAIN FULLY SYNCS PLEASE BE PATIENT"
             echo -e "${YELLOW}======================================================================================${NC}"
             echo
             $COIN_CLI getinfo
             echo
-            if [[ $(wget -nv -qO - https://explorer.zel.network/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]]; then
-                echo -e "${CYAN}Zelnode on block ${GREEN}$(${COIN_CLI} getinfo | jq '.blocks')${NC}"
+            if [[ $(wget -nv -qO - https://explorer.runonflux.io/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]]; then
+                echo -e "${CYAN}Fluxnode on block ${GREEN}$(${COIN_CLI} getinfo | jq '.blocks')${NC}"
             else
-                echo -e "${CYAN}Zelnode on block ${BLINKRED}$(${COIN_CLI} getinfo | jq '.blocks')${NC}"
+                echo -e "${CYAN}Fluxnode on block ${BLINKRED}$(${COIN_CLI} getinfo | jq '.blocks')${NC}"
             fi
-            if [[ $(wget -nv -qO - https://explorer.zel.network/api/status?q=getInfo | jq '.info.blocks') == $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight') ]]; then
+            if [[ $(wget -nv -qO - https://explorer.runonflux.io/api/status?q=getInfo | jq '.info.blocks') == $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight') ]]; then
                 echo -e "${CYAN}Mongodb on block ${GREEN}$(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight')${NC}"
             else
                 echo -e "${CYAN}Mongodb on block ${BLINKRED}$(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight')${NC}"
@@ -586,12 +597,12 @@ function status_loop() {
             MSG1="${CYAN}Refreshes every 30 seconds while syncing chain and data. Refresh loop will stop automatically once it's fully synced.${NC}"
             MSG2=''
             spinning_timer
-            if [[ $(wget -nv -qO - https://explorer.zel.network/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]] && [[ $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight') == $(wget -nv -qO - https://explorer.zel.network/api/status?q=getInfo | jq '.info.blocks') ]]; then
+            if [[ $(wget -nv -qO - https://explorer.runonflux.io/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]] && [[ $(wget -nv -qO - http://${WANIP}:16127/explorer/scannedheight | jq '.data.generalScannedHeight') == $(wget -nv -qO - https://explorer.zel.network/api/status?q=getInfo | jq '.info.blocks') ]]; then
                 break
             fi
         done
         rm -rf dump && sleep 3
-        zelbench-cli restartnodebenchmarks > /dev/null 2>&1
+        fluxbench-cli restartnodebenchmarks > /dev/null 2>&1
         check
         display_banner
     else
@@ -599,19 +610,19 @@ function status_loop() {
         do
             clear
             echo -e "${YELLOW}======================================================================================"
-            echo -e "${GREEN} ZELNODE AND IS SYNCING"
+            echo -e "${GREEN} FLUXNODE IS SYNCING"
             echo -e " THIS SCREEN REFRESHES EVERY 30 SECONDS"
-            echo -e " CHECK BLOCK HEIGHT AT https://explorer.zel.network/"
-            echo -e " YOU COULD START YOUR ZELNODE FROM YOUR CONTROL WALLET WHILE IT SYNCS"
+            echo -e " CHECK BLOCK HEIGHT AT https://explorer.runonflux.io/"
+            echo -e " YOU COULD START YOUR FLUXNODE FROM YOUR CONTROL WALLET WHILE IT SYNCS"
             echo -e "${YELLOW}======================================================================================${NC}"
             echo
             $COIN_CLI getinfo
-            sudo chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"
+            sudo chown -R "$USERNAME":"$USERNAME" $HOME
             NUM='30'
             MSG1="${CYAN}Refreshes every 30 seconds while syncing to chain. Refresh loop will stop automatically once it's fully synced.${NC}"
             MSG2=''
             spinning_timer
-            if [[ $(wget -nv -qO - https://explorer.zel.network/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]]; then
+            if [[ $(wget -nv -qO - https://explorer.runonflux.io/api/status?q=getInfo | jq '.info.blocks') == $(${COIN_CLI} getinfo | jq '.blocks') ]]; then
                 break
             fi
         done
@@ -622,17 +633,17 @@ function status_loop() {
 
 function update_script() {
     echo -e "${YELLOW}Creating a script to update binaries for future updates...${NC}"
-    touch /home/"$USERNAME"/update.sh
-    cat << EOF > /home/"$USERNAME"/update.sh
+    touch $HOME/update.sh
+    cat << EOF > $HOME/update.sh
 #!/bin/bash
-COIN_NAME='zelcash'
-COIN_DAEMON='zelcashd'
-COIN_CLI='zelcash-cli'
+COIN_NAME='flux'
+COIN_DAEMON='fluxd'
+COIN_CLI='flux-cli'
 COIN_PATH='/usr/local/bin'
 sudo systemctl stop \$COIN_NAME
 \$COIN_CLI stop > /dev/null 2>&1 && sleep 2
 sudo killall \$COIN_DAEMON > /dev/null 2>&1
-sudo killall -s SIGKILL zelbenchd > /dev/null 2>&1
+sudo killall -s SIGKILL fluxbenchd > /dev/null 2>&1
 sudo apt-get update
 sudo apt-get install --only-upgrade \$COIN_NAME -y
 sudo chmod 755 \${COIN_PATH}/\${COIN_NAME}*
@@ -644,12 +655,12 @@ EOF
 function check() {
     echo && echo && echo
     echo -e "${YELLOW}Running through some checks...${NC}"
-    if pgrep zelcashd > /dev/null; then
+    if pgrep fluxd > /dev/null; then
         echo -e "${CHECK_MARK} ${CYAN}${COIN_NAME^} daemon is installed and running${NC}" && sleep 1
     else
         echo -e "${X_MARK} ${CYAN}${COIN_NAME^} daemon is not running${NC}" && sleep 1
     fi
-    if [ -d "/home/$USERNAME/.zcash-params" ]; then
+    if [ -d "$HOME/.zcash-params" ]; then
         echo -e "${CHECK_MARK} ${CYAN}zkSNARK params installed${NC}" && sleep 1
     else
         echo -e "${X_MARK} ${CYAN}zkSNARK params not installed${NC}" && sleep 1
@@ -674,12 +685,12 @@ function check() {
     else
         echo -e "${X_MARK} ${CYAN}Nodejs did not install${NC}" && sleep 1
     fi
-    if [ -d "/home/$USERNAME/zelflux" ]; then
+    if [ -d "$HOME/zelflux" ]; then
         echo -e "${CHECK_MARK} ${CYAN}Zelflux installed${NC}" && sleep 1
     else
         echo -e "${X_MARK} ${CYAN}Zelflux did not install${NC}" && sleep 1
     fi
-    if [ -f "/home/$USERNAME/$UPDATE_FILE" ]; then
+    if [ -f "$HOME/$UPDATE_FILE" ]; then
         echo -e "${CHECK_MARK} ${CYAN}Update script created${NC}" && sleep 3
     else
         echo -e "${X_MARK} ${CYAN}Update script not installed${NC}" && sleep 3
@@ -689,10 +700,10 @@ function check() {
 
 function display_banner() {
     echo -e "${BLUE}"
-    figlet -t -k "ZELNODES  &  ZELFLUX"
+    figlet -t -k "FLUXNODES"
     echo -e "${NC}"
     echo -e "${YELLOW}================================================================================================================================"
-    echo -e " PLEASE COMPLETE THE ZELNODE SETUP AND START YOUR ZELNODE${NC}"
+    echo -e " PLEASE COMPLETE THE FLUXNODE SETUP AND START YOUR FLUXNODE${NC}"
     echo -e "${CYAN} COURTESY OF DK808${NC}"
     echo
     echo -e "${YELLOW}   Commands to manage ${COIN_NAME}.${NC}"
@@ -702,10 +713,10 @@ function display_banner() {
     echo
     echo -e "${PIN} ${YELLOW}To update binaries wait for announcement that update is ready then enter:${NC} ${SEA}./${UPDATE_FILE}${NC}"
     echo
-    echo -e "${YELLOW}   PM2 is now managing Zelflux to start up on reboots.${NC}"
+    echo -e "${YELLOW}   PM2 is now managing Flux to start up on reboots.${NC}"
     pm2 list
     echo
-    echo -e "${PIN} ${CYAN}To access your frontend to Zelflux enter this in as your url: ${BLINKSEA}${WANIP}:${ZELFRONTPORT}${NC}"
+    echo -e "${PIN} ${CYAN}To access your Flux UI enter this in as your url: ${BLINKSEA}${WANIP}:${ZELFRONTPORT}${NC}"
     echo -e "${YELLOW}================================================================================================================================${NC}"
 }
 
