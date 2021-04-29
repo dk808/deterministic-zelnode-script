@@ -227,7 +227,7 @@ daemon=1
 txindex=1
 listen=1
 externalip=$WANIP
-bind=$WANIP
+bind=0.0.0.0
 addnode=explorer.flux.zelcore.io
 addnode=explorer.zel.zelcore.io
 addnode=explorer.zel.network
@@ -397,7 +397,6 @@ EOF
 function install_zelflux() {
     echo -e "${YELLOW}Detect OS version to install Mongodb, Nodejs, and updating firewall to install Zelflux...${NC}"
     sudo ufw allow $ZELFRONTPORT/tcp
-    sudo ufw allow $LOCPORT/tcp
     sudo ufw allow $ZELNODEPORT/tcp
     if mongod --version > /dev/null 2>&1; then
         echo -e "${YELLOW}Mongodb already installed...${NC}"
