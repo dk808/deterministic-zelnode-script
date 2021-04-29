@@ -397,7 +397,6 @@ EOF
 function install_zelflux() {
     echo -e "${YELLOW}Detect OS version to install Mongodb, Nodejs, and updating firewall to install Zelflux...${NC}"
     sudo ufw allow $ZELFRONTPORT/tcp
-    sudo ufw allow $LOCPORT/tcp
     sudo ufw allow $ZELNODEPORT/tcp
     sudo ufw allow $MDBPORT/tcp
     if mongod --version > /dev/null 2>&1; then
@@ -503,24 +502,9 @@ function zelflux() {
         sudo rm -rf zelflux
     fi
     ZELID=$(whiptail --inputbox "Enter your ZelID found in the Zelcore+/Apps section of your Zelcore" 8 71 3>&1 1>&2 2>&3)
-    if whiptail --yesno "Are you planning to run the Kadena app? Please note that only Super/BAMF nodes are allowed to run this app." 8 60 3>&1 1>&2 2>&3; then
-        KADENA=$(whiptail --inputbox "Please enter your Kadena address from Zelcore. Copy and paste the first address under the QR code. Do not edit out anything just paste what you copied." 8 85 3>&1 1>&2 2>&3)
-        git clone https://github.com/zelcash/zelflux.git
-        touch $HOME/zelflux/config/userconfig.js
-        cat << EOF > $HOME/zelflux/config/userconfig.js
-module.exports = {
-      initial: {
-        ipaddress: '${WANIP}',
-        zelid: '${ZELID}',
-        kadena: '${KADENA}',
-        testnet: false,
-      }
-    }
-EOF
-    else
-        git clone https://github.com/zelcash/zelflux.git
-        touch $HOME/zelflux/config/userconfig.js
-        cat << EOF > $HOME/zelflux/config/userconfig.js
+    git clone https://github.com/zelcash/zelflux.git
+    touch $HOME/zelflux/config/userconfig.js
+    cat << EOF > $HOME/zelflux/config/userconfig.js
 module.exports = {
       initial: {
         ipaddress: '${WANIP}',
@@ -529,7 +513,6 @@ module.exports = {
       }
     }
 EOF
-    fi
     if ! pm2 -v > /dev/null 2>&1; then
         npm i -g pm2
         pm2_startup
