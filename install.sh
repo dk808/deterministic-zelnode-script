@@ -398,6 +398,7 @@ function install_zelflux() {
     echo -e "${YELLOW}Detect OS version to install Mongodb, Nodejs, and updating firewall to install Zelflux...${NC}"
     sudo ufw allow $ZELFRONTPORT/tcp
     sudo ufw allow $ZELNODEPORT/tcp
+    sudo ufw allow $LOCPORT/tcp
     if mongod --version > /dev/null 2>&1; then
         echo -e "${YELLOW}Mongodb already installed...${NC}"
         sudo systemctl start mongod
