@@ -37,7 +37,6 @@ USERNAME="$(whoami)"
 ZELFRONTPORT=16126
 LOCPORT=16127
 ZELNODEPORT=16128
-MDBPORT=27017
 
 
 #color codes
@@ -94,6 +93,7 @@ function wipe_clean() {
     pm2 del flux > /dev/null 2>&1
     pm2 flush > /dev/null 2>&1
     sudo rm -rf zelflux && sleep 1
+    sudo rm -rf .flux && sleep 1
     sudo rm -rf .fluxbenchmark && sleep 1
     rm $UPDATE_FILE > /dev/null 2>&1
 }
@@ -240,16 +240,16 @@ EOF
 
 function zel_package() {
     sudo apt-get update
-    sudo apt install flux zelbench -y
+    sudo apt install flux fluxbench -y
     sudo chmod 755 $COIN_PATH/${COIN_NAME}*
 }
 
 function install_zel() {
     echo -e "${YELLOW}Installing Flux apt packages...${NC}"
-    echo 'deb https://apt.runonflux.io/ '$(lsb_release -cs)' all main' | sudo tee /etc/apt/sources.list.d/flux.list
+    echo 'deb https://apt.runonflux.io/ '$(lsb_release -cs)' main' | sudo tee /etc/apt/sources.list.d/flux.list
     sleep 1
     if [ ! -f /etc/apt/sources.list.d/flux.list ]; then
-        echo 'deb https://apt.zel.network/ '$(lsb_release -cs)' all main' | sudo tee /etc/apt/sources.list.d/flux.list
+        echo 'deb https://apt.zel.network/ '$(lsb_release -cs)' main' | sudo tee /etc/apt/sources.list.d/flux.list
     fi
     gpg --keyserver keyserver.ubuntu.com --recv 4B69CA27A986265D
     gpg --export 4B69CA27A986265D | sudo apt-key add -
@@ -297,11 +297,11 @@ function bootstrap() {
 
 function create_service() {
     echo -e "${YELLOW}Creating ${COIN_NAME^} service...${NC}"
-    sudo touch /etc/systemd/system/$COIN_NAME.service
-    sudo chown "$USERNAME":"$USERNAME" /etc/systemd/system/$COIN_NAME.service
-    cat << EOF > /etc/systemd/system/$COIN_NAME.service
+    sudo touch /etc/systemd/system/zelcash.service
+    sudo chown "$USERNAME":"$USERNAME" /etc/systemd/system/zelcash.service
+    cat << EOF > /etc/systemd/system/zelcash.service
 [Unit]
-Description=$COIN_NAME service
+Description=Zelcash service
 After=network.target
 [Service]
 Type=forking
@@ -309,7 +309,7 @@ User=$USERNAME
 Group=$USERNAME
 WorkingDirectory=$HOME/$CONFIG_DIR/
 ExecStart=$COIN_PATH/$COIN_DAEMON -datadir=$HOME/$CONFIG_DIR/ -conf=$HOME/$CONFIG_DIR/$CONFIG_FILE -daemon
-ExecStop=-$COIN_PATH/$COIN_CLI stop
+ExecStop=$COIN_PATH/$COIN_CLI stop
 Restart=always
 RestartSec=3
 PrivateTmp=true
@@ -320,10 +320,10 @@ StartLimitBurst=5
 [Install]
 WantedBy=multi-user.target
 EOF
-    sudo chown root:root /etc/systemd/system/$COIN_NAME.service
+    sudo chown root:root /etc/systemd/system/zelcash.service
     sudo systemctl daemon-reload
     sleep 4
-    sudo systemctl enable $COIN_NAME.service > /dev/null 2>&1
+    sudo systemctl enable zelcash.service > /dev/null 2>&1
 }
 
 function basic_security() {
@@ -342,7 +342,7 @@ function start_daemon() {
     NUM='105'
     MSG1='Starting daemon & syncing with chain please be patient this will take about 2 min...'
     MSG2=''
-    if sudo systemctl start $COIN_NAME.service > /dev/null 2>&1; then
+    if sudo systemctl start zelcash.service > /dev/null 2>&1; then
         echo && spinning_timer
         NUM='10'
         MSG1='Getting info...'
@@ -361,7 +361,7 @@ function log_rotate() {
     sleep 1
     if [ -f /etc/logrotate.d/fluxdebuglog ]; then
         echo -e "${YELLOW}Existing log rotate conf found, backing up to $HOME/zeldebuglogrotate.old ...${NC}"
-        sudo mv /etc/logrotate.d/zeldebuglog $HOME/fluxdebuglogrotate.old
+        sudo mv /etc/logrotate.d/fluxdebuglog $HOME/fluxdebuglogrotate.old
         sleep 2
     fi
     sudo touch /etc/logrotate.d/fluxdebuglog
