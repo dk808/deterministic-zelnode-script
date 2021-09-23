@@ -23,7 +23,7 @@ COIN_NAME='flux'
 #wallet information
 
 UPDATE_FILE='update.sh'
-BOOTSTRAP_TAR='https://www.dropbox.com/s/2f2oa4sezcl2b7f/flux-bootstrap.tar.gz'
+BOOTSTRAP_TAR='https://fluxnodeservice.com/daemon_bootstrap.tar.gz'
 CONFIG_DIR='.flux'
 CONFIG_FILE='flux.conf'
 RPCPORT='16124'
